@@ -1,14 +1,26 @@
-import { DeliveryStatus, PackageType } from "./enums";
+enum DeliveryStatus {
+  ASSIGNED = "assigned",
+  IN_TRANSIT = "in-transit",
+  DELIVERED = "delivered",
+}
+
+enum PackageType {
+  DOCUMENT = "document",
+  PERISHABLE = "perishable",
+  FRAGILE = "fragile",
+  APPLIANCE = "appliance",
+  FURNITURE = "furniture",
+}
 
 type DeliveryNote = {
-  id: number;
+  id: string;
   createdAt: Date;
-  deliveryId: number;
+  deliveryId: string;
   note: string;
 };
 
 type DeliveryJob = {
-  id: number;
+  id: string;
   createdAt: Date;
   updatedAt: Date;
   pickupAddress: string;

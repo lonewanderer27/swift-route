@@ -1,7 +1,11 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { DeliveryJobsController } from "./delivery-jobs.controller";
 import { DeliveryJobsService } from "./delivery-jobs.service";
-import { BadRequestException, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  NotFoundException,
+  UnprocessableEntityException,
+} from "@nestjs/common";
 import { JOB_IDS } from "../stores/delivery-jobs.store";
 import { DeliveryStatus } from "@swift-route/types";
 
@@ -80,5 +84,21 @@ describe("DeliveryJobsController", () => {
     expect(
       updatedJob.status,
     ).toBe(expectedStatus);
+  });
+
+  it("should throw 422 if tried to advance the status of an already delivered job", () => {
+    // choose one record from our static delivery jobs
+    const jobId = JOB_IDS.chris_delivered;
+    const job = controller.findOne(jobId);
+
+    // double check that the initial status is "delivered"
+    const initialStatus = job?.status;
+    expect(initialStatus).toBe(DeliveryStatus.DELIVERED);
+
+    // now attempt to reverse status to "in-transit"
+    // we expect it'll throw an Unprocessable Entity Exception (422)
+    expect(() =>
+      controller.patchStatus(jobId, { status: DeliveryStatus.IN_TRANSIT })
+    ).toThrow(UnprocessableEntityException);
   });
 });

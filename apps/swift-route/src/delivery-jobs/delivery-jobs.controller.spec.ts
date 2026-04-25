@@ -2,6 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { DeliveryJobsController } from "./delivery-jobs.controller";
 import { DeliveryJobsService } from "./delivery-jobs.service";
 import { BadRequestException, NotFoundException } from "@nestjs/common";
+import { deliveryJobsStore, JOB_IDS } from "../stores/delivery-jobs.store";
 
 describe("DeliveryJobsController", () => {
   let controller: DeliveryJobsController;
@@ -19,7 +20,7 @@ describe("DeliveryJobsController", () => {
     expect(controller).toBeDefined();
   });
 
-  it("should throw Error 400 if there is no courierId", async () => {
+  it("should throw Error 400 if there is no courierId", () => {
     expect(() => controller.findCourierJobs(undefined as any)).toThrow(
       BadRequestException,
     );
@@ -30,5 +31,12 @@ describe("DeliveryJobsController", () => {
       .toThrow(
         NotFoundException,
       );
+  });
+
+  it("should return a known delivery job", () => {
+    // choose one record from our static delivery jobs
+    const jobId = JOB_IDS.chris_assigned;
+    const expectedJob = deliveryJobsStore.find((job) => job.id === jobId);
+    expect(controller.findOne(jobId)).toBe(expectedJob);
   });
 });

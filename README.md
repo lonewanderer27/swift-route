@@ -1,98 +1,155 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# SwiftRoute — Full Stack Developer Case Study
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+SwiftRoute is a fictional last-mile logistics platform built as a take-home technical assessment. Couriers use a mobile app to manage their assigned delivery jobs throughout the day — picking up parcels, marking them in-transit, and confirming delivery.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Monorepo Structure
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This is a **pnpm monorepo** with two apps and one shared package:
 
-## Project setup
-
-```bash
-$ pnpm install
+```
+swift-route/
+├── apps/
+│   ├── swift-route/     # NestJS 11 backend API
+│   └── swift-app/       # Expo / React Native mobile app (Expo SDK 54)
+└── packages/
+    └── types/           # Shared TypeScript types (@swift-route/types)
 ```
 
-## Compile and run the project
+The workspace is defined in `pnpm-workspace.yaml` with hoisted node linking.
 
-```bash
-# development
-$ pnpm run start
+---
 
-# watch mode
-$ pnpm run start:dev
+## What Was Built
 
-# production mode
-$ pnpm run start:prod
+### Part 1 — Backend (NestJS) ✅
+
+A NestJS REST API serving delivery job data from an in-memory store. No database — seed data is loaded on startup across three couriers.
+
+**Endpoints** (all under `/delivery-jobs`):
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/delivery-jobs?courierId=&status=` | List jobs by courier (required) and optional status |
+| `GET` | `/delivery-jobs/all?courierId=&status=` | Same, but validates `courierId` as UUID via `ParseUUIDPipe` |
+| `GET` | `/delivery-jobs/:id` | Get a single job — 404 if not found |
+| `POST` | `/delivery-jobs` | Create a job (status defaults to `assigned`) |
+| `PUT` | `/delivery-jobs/:id` | Full replace |
+| `PATCH` | `/delivery-jobs/:id` | Partial update |
+| `PATCH` | `/delivery-jobs/:id/status` | Advance status — enforces state machine |
+| `DELETE` | `/delivery-jobs/:id` | Delete job (204) |
+
+**Status state machine** enforces a strict one-way transition:
+
+```
+assigned → in-transit → delivered
 ```
 
-## Run tests
+Any invalid transition (e.g. skipping a step, reversing, or updating a delivered job) returns `422 UnprocessableEntityException`.
 
-```bash
-# unit tests
-$ pnpm run test
+**Seed data** — 9 jobs across 3 couriers, each covering all three statuses:
 
-# e2e tests
-$ pnpm run test:e2e
+| Courier | IDs |
+|---------|-----|
+| Jeon Jung-kook | `jk_assigned`, `jk_inTransit`, `jk_delivered` |
+| Sophia Laforteza | `sophia_assigned`, `sophia_inTransit`, `sophia_delivered` |
+| Christopher Bang | `chris_assigned`, `chris_inTransit`, `chris_delivered` |
 
-# test coverage
-$ pnpm run test:cov
+`JOB_IDS.ian` is a non-existent ID reserved for 404 test cases.
+
+**DTO pattern** — each operation uses an `*Input` type (snake_case, matches API body) and a `*Model` class (implements `DeliveryJob`, transforms to camelCase domain shape). The model constructor handles all transformation — e.g. converting `courier: string` → `{ id: UUID, name: string }`.
+
+**Tests** cover the three required test groups:
+
+1. Query param validation — missing `courierId` returns 400; valid params return 200 with filtered list
+2. Status transitions — all valid transitions and invalid ones including reversals and updating a delivered job
+3. `GET /delivery-jobs/:id` — returns the correct job; returns 404 for an unknown ID
+
+Tests use real `NestJS TestingModule` instances with the real service — no mocks. Status-transition tests are stateful and ordered within a `describe` block, relying on Jest's sequential execution to carry in-memory state across `it()` calls.
+
+### Part 2 — Mobile (React Native / Expo) 🚧
+
+The mobile app (`apps/swift-app`) is scaffolded with Expo SDK 54, Expo Router, and React Navigation. The courier-facing screens — **My Jobs** list and **Job Detail** — are yet to be implemented.
+
+Planned implementation:
+- **My Jobs screen** — list of delivery jobs with colour-coded status badges (assigned = blue, in-transit = orange, delivered = green), loading/empty/error states, pull-to-refresh, and navigation to Job Detail
+- **Job Detail screen** — full job details with a status-appropriate action button, optimistic updates via Zustand, and error rollback on API failure
+- **State management** — Zustand `deliveryJobsStore` with a `useDeliveryJobs(courierId)` custom hook
+- **Styling** — plain `StyleSheet` (no Tamagui); chosen for zero setup overhead and direct React Native API without an abstraction layer
+
+---
+
+## Shared Types (`packages/types`)
+
+Package name: `@swift-route/types`. No build step — imported directly from source via the monorepo workspace.
+
+```ts
+DeliveryStatus  // "assigned" | "in-transit" | "delivered"
+PackageType     // "document" | "perishable" | "fragile" | "appliance" | "furniture"
+
+type Courier      = { id: string; name: string }
+type DeliveryNote = { id: string; createdAt: Date; deliveryId: string; note: string }
+type DeliveryJob  = { id, createdAt, updatedAt, pickupAddress, dropoffAddress,
+                      packageType, status, notes, courier }
 ```
 
-## Deployment
+`DeliveryStatus` and `PackageType` are defined as `const` objects rather than TypeScript `enum` to work around a known incompatibility between the NestJS boilerplate and TypeScript 5.7+.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+---
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Getting Started
+
+**Prerequisites:** Node.js 20+, pnpm 9+
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+pnpm install
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Backend
 
-## Resources
+```bash
+# Development (watch mode)
+pnpm start:dev
 
-Check out a few resources that may come in handy when working with NestJS:
+# Production build
+pnpm build
+pnpm start:prod
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Server listens on `PORT` env var or `3000` by default.
 
-## Support
+### Run Tests
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+# All unit tests
+pnpm test
 
-## Stay in touch
+# Single file
+pnpm test -- apps/swift-route/src/delivery-jobs/delivery-jobs.controller.spec.ts
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+# Watch mode
+pnpm test:watch
 
-## License
+# Coverage
+pnpm test:cov
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# E2E
+pnpm test:e2e
+```
+
+### Mobile App
+
+```bash
+cd apps/swift-app
+pnpm start        # Expo dev server
+pnpm ios          # iOS simulator
+pnpm android      # Android emulator
+```
+
+### Other
+
+```bash
+pnpm lint         # ESLint with auto-fix
+pnpm format       # Prettier across all apps
+```

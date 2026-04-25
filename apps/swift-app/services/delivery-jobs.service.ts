@@ -1,7 +1,7 @@
 import { DeliveryJob, DeliveryStatus } from "@swift-route/types";
 import api from "./api-client";
 
-class DeliveryJobService {
+class DeliveryJobsService {
   static async getCourierJobs(courierId: string, status: DeliveryStatus) {
     const res = await api.get<DeliveryJob[]>(`delivery-jobs`, {
       params: { courierId, status },
@@ -28,4 +28,4 @@ class DeliveryJobService {
   }
 }
 
-export default DeliveryJobService;
+export default DeliveryJobsService;

@@ -20,6 +20,9 @@ import {
 import { PatchStatusInput, PatchStatusModel } from "./dto/patch-status.dto";
 import { DeliveryStatus } from "@swift-route/types";
 
+const deliveryJobNotFoundException = (id: string) =>
+  new NotFoundException(`Delivery Job with ID: ${id} not found`);
+
 @Injectable()
 export class DeliveryJobsService {
   private jobs = deliveryJobsStore;
@@ -69,8 +72,8 @@ export class DeliveryJobsService {
     const job = this.jobs.find((job) => job.id === id);
 
     if (!job) {
-      // return a 404 error?
-      throw new NotFoundException(`Delivery Job with ID: ${id} not found`);
+      // return a 404 error
+      throw deliveryJobNotFoundException(id);
     }
 
     // otherwise return the record
@@ -91,8 +94,8 @@ export class DeliveryJobsService {
     const jobIndex = this.jobs.find((_, index) => jobIndex === index);
 
     if (!job) {
-      // return a 404 error?
-      throw new NotFoundException(`Delivery Job with ID: ${id} not found`);
+      // return a 404 error
+      throw deliveryJobNotFoundException(id);
     }
 
     // create an updated imaginary record
@@ -115,8 +118,8 @@ export class DeliveryJobsService {
     const job = this.jobs.find((_, index) => jobIndex === index);
 
     if (!job) {
-      // return a 404 error?
-      throw new NotFoundException(`Delivery Job with ID: ${id} not found`);
+      // return a 404 error
+      throw deliveryJobNotFoundException(id);
     }
 
     // create a new updaated imaginary record
@@ -138,8 +141,8 @@ export class DeliveryJobsService {
     const job = this.jobs.find((_, index) => jobIndex === index);
 
     if (!job) {
-      // return a 404 error?
-      throw new NotFoundException(`Delivery Job with ID: ${id} not found`);
+      // return a 404 error
+      throw deliveryJobNotFoundException(id);
     }
 
     const oldStatus = job.status;

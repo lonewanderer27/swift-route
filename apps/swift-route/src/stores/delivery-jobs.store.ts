@@ -3,21 +3,21 @@ import { DeliveryStatus, PackageType } from "@swift-route/types";
 import { COURIER_IDS, courierStore } from "./courier.store";
 import { deliveryNotesStore } from "./delivery-notes.store";
 
-const JOB_IDS = {
-  jk_assigned:      "a1b2c3d4-0001-4000-8000-000000000001",
-  jk_inTransit:     "a1b2c3d4-0002-4000-8000-000000000002",
-  jk_delivered:     "a1b2c3d4-0003-4000-8000-000000000003",
-  sophia_assigned:  "a1b2c3d4-0004-4000-8000-000000000004",
+export const JOB_IDS = {
+  jk_assigned: "a1b2c3d4-0001-4000-8000-000000000001",
+  jk_inTransit: "a1b2c3d4-0002-4000-8000-000000000002",
+  jk_delivered: "a1b2c3d4-0003-4000-8000-000000000003",
+  sophia_assigned: "a1b2c3d4-0004-4000-8000-000000000004",
   sophia_inTransit: "a1b2c3d4-0005-4000-8000-000000000005",
   sophia_delivered: "a1b2c3d4-0006-4000-8000-000000000006",
-  chris_assigned:   "a1b2c3d4-0007-4000-8000-000000000007",
-  chris_inTransit:  "a1b2c3d4-0008-4000-8000-000000000008",
-  chris_delivered:  "a1b2c3d4-0009-4000-8000-000000000009",
+  chris_assigned: "a1b2c3d4-0007-4000-8000-000000000007",
+  chris_inTransit: "a1b2c3d4-0008-4000-8000-000000000008",
+  chris_delivered: "a1b2c3d4-0009-4000-8000-000000000009",
 } as const;
 
 const jungkook = courierStore.find((c) => c.id === COURIER_IDS.jungkook)!;
-const sophia   = courierStore.find((c) => c.id === COURIER_IDS.sophia)!;
-const chris    = courierStore.find((c) => c.id === COURIER_IDS.chris)!;
+const sophia = courierStore.find((c) => c.id === COURIER_IDS.sophia)!;
+const chris = courierStore.find((c) => c.id === COURIER_IDS.chris)!;
 
 const notesFor = (jobId: string) =>
   deliveryNotesStore.filter((n) => n.deliveryId === jobId);

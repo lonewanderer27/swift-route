@@ -166,6 +166,7 @@ export class DeliveryJobsService {
         if (newStatus !== DeliveryStatus.DELIVERED) {
           throw invalidStatusException;
         }
+        break;
       }
       case DeliveryStatus.DELIVERED: {
         // Delivered - Shall be final status

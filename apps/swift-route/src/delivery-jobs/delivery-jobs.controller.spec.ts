@@ -89,8 +89,9 @@ describe("DeliveryJobsController", () => {
   });
 
   it("should throw 422 if tried to reverse the status of an already delivered job", () => {
-    // choose one record from our static delivery jobs
-    const jobId = JOB_IDS.sophia_delivered;
+    // choose the previous delivery job we advanced to delivered
+    // just checking if Jest do not lose the in-memory DB we have
+    const jobId = JOB_IDS.chris_assigned;
     const job = controller.findOne(jobId);
 
     // double check that the initial status is "delivered"
@@ -106,10 +107,8 @@ describe("DeliveryJobsController", () => {
 
   it("should throw 422 if tried to reverse status from in-transit to assigned", () => {
     // choose one record from our static delivery jobs
-    const jobId = JOB_IDS.sophia_inTransit;
-    console.log(jobId);
+    const jobId = JOB_IDS.chris_inTransit;
     const job = controller.findOne(jobId);
-    console.log(JSON.stringify(job));
 
     // double check that the status is "in-transit"
     expect(job.status).toBe(DeliveryStatus.IN_TRANSIT);

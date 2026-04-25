@@ -8,10 +8,6 @@ class DeliveryJobsService {
     });
     return res.data;
   }
-  static async getJob(id: string) {
-    const res = await api.get<DeliveryJob>(`delivery-jobs/${id}`);
-    return res.data;
-  }
   static async updateStatus(id: string, status: DeliveryStatus) {
     const res = await api.patch<DeliveryJob>(`delivery-jobs/${id}`, {
       status,
@@ -24,6 +20,10 @@ class DeliveryJobsService {
     const res = await api.get<DeliveryJob[]>(`delivery-jobs/`, {
       params: { courierId, status },
     });
+    return res.data;
+  }
+  static async getJob(id: string) {
+    const res = await api.get<DeliveryJob>(`delivery-jobs/${id}`);
     return res.data;
   }
 }

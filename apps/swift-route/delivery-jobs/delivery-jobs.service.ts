@@ -1,9 +1,4 @@
-import {
-  HttpCode,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { deliveryJobsStore } from "../src/stores";
 import {
   CreateDeliveryJobInput,
@@ -23,7 +18,16 @@ export class DeliveryJobsService {
   }
 
   findOne(id: string) {
-    return this.jobs.find((job) => job.id === id);
+    // check first if we have the record
+    const job = this.jobs.find((job) => job.id === id);
+
+    if (!job) {
+      // return a 404 error?
+      throw new NotFoundException("Delivery Job not found");
+    }
+
+    // otherwise return the record
+    return job;
   }
 
   createOne(body: CreateDeliveryJobInput) {

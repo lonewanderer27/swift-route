@@ -13,6 +13,7 @@ export const JOB_IDS = {
   chris_assigned: "a1b2c3d4-0007-4000-8000-000000000007",
   chris_inTransit: "a1b2c3d4-0008-4000-8000-000000000008",
   chris_delivered: "a1b2c3d4-0009-4000-8000-000000000009",
+  ian: "a1b2c3d4-0009-4000-8000-000000000009",
 } as const;
 
 const jungkook = courierStore.find((c) => c.id === COURIER_IDS.jungkook)!;

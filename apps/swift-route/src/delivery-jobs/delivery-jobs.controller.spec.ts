@@ -32,7 +32,8 @@ describe("DeliveryJobsController", () => {
   });
 
   it("should throw 404 on unknown delivery job", () => {
-    expect(() => controller.findOne("byd2c3d4-0001-4000-8000-000000000001"))
+    const notExistingId = "byd2c3d4-0001-4000-8000-000000000001";
+    expect(() => controller.findOne(notExistingId))
       .toThrow(
         NotFoundException,
       );

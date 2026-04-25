@@ -12,7 +12,7 @@ class DeliveryJobsService {
     const res = await api.get<DeliveryJob>(`delivery-jobs/${id}`);
     return res.data;
   }
-  static async advanceStatus(id: string, status: DeliveryStatus) {
+  static async updateStatus(id: string, status: DeliveryStatus) {
     const res = await api.patch<DeliveryJob>(`delivery-jobs/${id}`, {
       status,
     });

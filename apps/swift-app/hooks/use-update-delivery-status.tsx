@@ -12,9 +12,9 @@ const useUpdateDeliveryStatus = () => {
 
     try {
       // call backend to updaate delivery status
-      await DeliveryJobsService.advanceStatus(id, status);
+      await DeliveryJobsService.updateStatus(id, status);
     } catch (err) {
-      // if API call fails, revert status in both stores and set error message
+      // if API call fails, revert status in the store and set error message
       const errMessage = err instanceof Error ? err.message : "Failed to update delivery status.";
       revertJobStatus(errMessage);
     }

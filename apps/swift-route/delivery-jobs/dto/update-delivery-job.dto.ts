@@ -8,10 +8,9 @@ import {
 import { randomUUID } from "crypto";
 
 type UpdateDeliveryJobInput = {
-  pickupAddress: string;
-  dropoffAddress: string;
-  packageType: PackageType;
-  status: DeliveryStatus;
+  pickup_address: string;
+  dropoff_address: string;
+  package_type: PackageType;
   courier: string;
   notes?: string[];
 };
@@ -29,9 +28,9 @@ export class UpdateDeliveryJobModel implements DeliveryJob {
 
   constructor(input: UpdateDeliveryJobInput) {
     this.id = randomUUID();
-    this.pickupAddress = input.pickupAddress;
-    this.dropoffAddress = input.dropoffAddress;
-    this.packageType = input.packageType;
+    this.pickupAddress = input.pickup_address;
+    this.dropoffAddress = input.dropoff_address;
+    this.packageType = input.package_type;
     this.status = DeliveryStatus.ASSIGNED;
     this.createdAt = new Date();
     this.updatedAt = new Date();
@@ -47,7 +46,7 @@ export class UpdateDeliveryJobModel implements DeliveryJob {
     // Transform courier name -> Courier object
     this.courier = {
       id: randomUUID(),
-      name: input.courier
-    }
+      name: input.courier,
+    };
   }
 }

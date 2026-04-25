@@ -7,10 +7,10 @@ import {
 } from "@swift-route/types";
 import { randomUUID } from "crypto";
 
-type CreateDeliveryJobInput = {
-  pickupAddress: string;
-  dropoffAddress: string;
-  packageType: PackageType;
+export type CreateDeliveryJobInput = {
+  pickup_address: string;
+  dropoff_address: string;
+  package_type: PackageType;
   courier: string;
   notes?: string[];
 };
@@ -28,9 +28,9 @@ export class CreateDeliveryJobModel implements DeliveryJob {
 
   constructor(input: CreateDeliveryJobInput) {
     this.id = randomUUID();
-    this.pickupAddress = input.pickupAddress;
-    this.dropoffAddress = input.dropoffAddress;
-    this.packageType = input.packageType;
+    this.pickupAddress = input.pickup_address;
+    this.dropoffAddress = input.dropoff_address;
+    this.packageType = input.package_type;
     this.status = DeliveryStatus.ASSIGNED;
     this.createdAt = new Date();
     this.updatedAt = new Date();

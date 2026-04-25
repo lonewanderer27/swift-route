@@ -87,9 +87,9 @@ describe("DeliveryJobsController", () => {
     ).toBe(expectedStatus);
   });
 
-  it("should throw 422 if tried to advance the status of an already delivered job", () => {
+  it("should throw 422 if tried to reverse the status of an already delivered job", () => {
     // choose one record from our static delivery jobs
-    const jobId = JOB_IDS.chris_delivered;
+    const jobId = JOB_IDS.sophia_delivered;
     const job = controller.findOne(jobId);
 
     // double check that the initial status is "delivered"
@@ -100,6 +100,23 @@ describe("DeliveryJobsController", () => {
     // we expect it'll throw an Unprocessable Entity Exception (422)
     expect(() =>
       controller.patchStatus(jobId, { status: DeliveryStatus.IN_TRANSIT })
+    ).toThrow(UnprocessableEntityException);
+  });
+
+  it("should throw 422 if tried to reverse status from in-transit to assigned", () => {
+    // choose one record from our static delivery jobs
+    const jobId = JOB_IDS.sophia_inTransit;
+    console.log(jobId);
+    const job = controller.findOne(jobId);
+    console.log(JSON.stringify(job));
+
+    // double check that the status is "in-transit"
+    expect(job.status).toBe(DeliveryStatus.IN_TRANSIT);
+
+    // now attempt to reverse status to "assigned"
+    // we expect it'll throw an Unprocessable Entity Exception (422)
+    expect(() =>
+      controller.patchStatus(jobId, { status: DeliveryStatus.ASSIGNED })
     ).toThrow(UnprocessableEntityException);
   });
 });

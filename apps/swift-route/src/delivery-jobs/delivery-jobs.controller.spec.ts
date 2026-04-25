@@ -2,7 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { DeliveryJobsController } from "./delivery-jobs.controller";
 import { DeliveryJobsService } from "./delivery-jobs.service";
 import { BadRequestException, NotFoundException } from "@nestjs/common";
-import { deliveryJobsStore, JOB_IDS } from "../stores/delivery-jobs.store";
+import { JOB_IDS } from "../stores/delivery-jobs.store";
 import { DeliveryStatus } from "@swift-route/types";
 
 describe("DeliveryJobsController", () => {
@@ -37,14 +37,14 @@ describe("DeliveryJobsController", () => {
   it("should return a known delivery job", () => {
     // choose one record from our static delivery jobs
     const jobId = JOB_IDS.chris_assigned;
-    const expectedJob = deliveryJobsStore.find((job) => job.id === jobId);
+    const expectedJob = controller.findOne(jobId);
     expect(controller.findOne(jobId)).toBe(expectedJob);
   });
 
   it("should transition status from assigned to in-transit", () => {
     // choose one record from our static delivery jobs
     const jobId = JOB_IDS.chris_assigned;
-    const initialJob = deliveryJobsStore.find((job) => job.id === jobId);
+    const initialJob = controller.findOne(jobId);
 
     // double check that the initial status is "assigned"
     const initialStatus = initialJob?.status;

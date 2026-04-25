@@ -70,7 +70,6 @@ export class DeliveryJobsController {
     return this.deliveryJobsService.patchStatus(id, body);
   }
 
-  // TODO: DELETE /delivery-jobs/:id
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   removeOne(

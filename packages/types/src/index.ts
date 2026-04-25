@@ -12,6 +12,11 @@ enum PackageType {
   FURNITURE = "furniture",
 }
 
+type Courier = {
+  id: string;
+  name: string;
+};
+
 type DeliveryNote = {
   id: string;
   createdAt: Date;
@@ -28,7 +33,8 @@ type DeliveryJob = {
   packageType: PackageType;
   status: DeliveryStatus;
   notes: DeliveryNote[];
+  courier: Courier;
 };
 
-export type { DeliveryJob, DeliveryNote };
+export type { DeliveryJob, DeliveryNote, Courier };
 export { DeliveryStatus, PackageType };

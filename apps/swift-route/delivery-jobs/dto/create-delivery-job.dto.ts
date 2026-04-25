@@ -1,4 +1,5 @@
 import {
+  Courier,
   DeliveryJob,
   DeliveryNote,
   DeliveryStatus,
@@ -10,6 +11,7 @@ type CreateDeliveryJobInput = {
   pickupAddress: string;
   dropoffAddress: string;
   packageType: PackageType;
+  courier: string;
   notes?: string[];
 };
 
@@ -20,6 +22,7 @@ export class CreateDeliveryJobModel implements DeliveryJob {
   public packageType: PackageType;
   public status: DeliveryStatus;
   public notes: DeliveryNote[];
+  public courier: Courier;
   public createdAt: Date;
   public updatedAt: Date;
 
@@ -39,5 +42,11 @@ export class CreateDeliveryJobModel implements DeliveryJob {
       deliveryId: this.id,
       note: note,
     }));
+
+    // Transform courier name -> Courier objects
+    this.courier = {
+      id: randomUUID(),
+      name: input.courier,
+    };
   }
 }

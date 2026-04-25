@@ -1,11 +1,23 @@
-import type { DeliveryJob } from "@swift-route/types";
+import type { Courier, DeliveryJob } from "@swift-route/types";
 import { DeliveryStatus, PackageType } from "@swift-route/types";
+
+const COURIER_IDS = {
+  jungkook: "c1b2c3d4-0001-4000-8000-000000000001",
+  sophia: "c1b2c3d4-0002-4000-8000-000000000002",
+  chris: "c1b2c3d4-0003-4000-8000-000000000003",
+} as const;
 
 const JOB_IDS = {
   assigned: "a1b2c3d4-0001-4000-8000-000000000001",
   inTransit: "a1b2c3d4-0002-4000-8000-000000000002",
   delivered: "a1b2c3d4-0003-4000-8000-000000000003",
 } as const;
+
+export const courierStore: Courier[] = [
+  { id: COURIER_IDS.jungkook, name: "Jeon Jung-kook" },
+  { id: COURIER_IDS.sophia, name: "Sophia Laforteza" },
+  { id: COURIER_IDS.chris, name: "Christopher Bang" },
+];
 
 export const deliveryNotesStore: DeliveryJob["notes"] = [
   {
@@ -37,6 +49,7 @@ export const deliveryJobsStore: DeliveryJob[] = [
     dropoffAddress: "200 George St, Sydney NSW 2000",
     packageType: PackageType.DOCUMENT,
     status: DeliveryStatus.ASSIGNED,
+    courier: courierStore.find((c) => c.id === COURIER_IDS.jungkook)!,
     notes: [],
   },
   {
@@ -47,6 +60,7 @@ export const deliveryJobsStore: DeliveryJob[] = [
     dropoffAddress: "320 Swanston St, Melbourne VIC 3000",
     packageType: PackageType.FRAGILE,
     status: DeliveryStatus.IN_TRANSIT,
+    courier: courierStore.find((c) => c.id === COURIER_IDS.sophia)!,
     notes: [],
   },
   {
@@ -57,6 +71,7 @@ export const deliveryJobsStore: DeliveryJob[] = [
     dropoffAddress: "12 Fortitude Valley Rd, Brisbane QLD 4006",
     packageType: PackageType.FURNITURE,
     status: DeliveryStatus.DELIVERED,
+    courier: courierStore.find((c) => c.id === COURIER_IDS.chris)!,
     notes: deliveryNotesStore.filter((n) => n.deliveryId === JOB_IDS.delivered),
   },
 ];

@@ -9,8 +9,9 @@ import {
   Patch,
   Post,
   Put,
+  Query,
 } from "@nestjs/common";
-import { DeliveryJob } from "@swift-route/types";
+import { DeliveryJob, DeliveryStatus } from "@swift-route/types";
 import { CreateDeliveryJobInput } from "./dto/create-delivery-job.dto";
 import { UpdateDeliveryJobInput } from "./dto/update-delivery-job.dto";
 import { DeliveryJobsService } from "./delivery-jobs.service";
@@ -28,8 +29,11 @@ export class DeliveryJobsController {
     optional param: ?status (DeliveryStatus)
   */
   @Get()
-  findAll(): DeliveryJob[] {
-    return this.deliveryJobsService.findAll();
+  findAll(
+    @Query("courierId") courierId: string,
+    @Query("status") status: DeliveryStatus,
+  ): DeliveryJob[] {
+    return this.deliveryJobsService.findAll(courierId, status);
   }
 
   @Get(":id")

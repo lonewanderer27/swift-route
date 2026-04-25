@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -23,8 +24,25 @@ import { DeliveryStatus } from "@swift-route/types";
 export class DeliveryJobsService {
   private jobs = deliveryJobsStore;
 
-  findAll() {
-    return this.jobs;
+  findAll(courierId?: string, status?: DeliveryStatus) {
+    const jobs = this.jobs
+      .filter((job) => {
+        let includeJob = true;
+
+        if (courierId) {
+          includeJob = job.courier.id === courierId;
+        } else {
+          throw new BadRequestException("courierId is required");
+        }
+
+        if (includeJob && status) {
+          includeJob = job.status === status;
+        }
+
+        return includeJob;
+      });
+
+    return jobs;
   }
 
   findOne(id: string) {

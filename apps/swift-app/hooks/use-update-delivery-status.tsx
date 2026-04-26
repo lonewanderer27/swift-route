@@ -3,7 +3,7 @@ import { useDeliveryJobsStore } from "@/store/delivery-jobs.store";
 import { DeliveryStatus } from "@swift-route/types";
 
 const useUpdateDeliveryStatus = () => {
-  const { advanceJobStatus, revertJobStatus, loading, setLoading, setError } = useDeliveryJobsStore();
+  const { advanceJobStatus, revertJobStatus, loading, setLoading, setError, error } = useDeliveryJobsStore();
 
   const updateStatus = async (id: string, status: DeliveryStatus) => {
     setLoading(true);
@@ -12,8 +12,8 @@ const useUpdateDeliveryStatus = () => {
     // optimistically update status in store
     advanceJobStatus(id, status);
 
-    // // simulate slow network
-    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    // simulate slow network
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
     try {
       // call backend to updaate delivery status
@@ -28,7 +28,7 @@ const useUpdateDeliveryStatus = () => {
     }
   }
 
-  return { updateStatus, loading };
+  return { updateStatus, loading, error };
 }
 
 export default useUpdateDeliveryStatus

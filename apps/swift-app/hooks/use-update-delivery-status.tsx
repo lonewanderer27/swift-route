@@ -3,12 +3,11 @@ import { useDeliveryJobsStore } from "@/store/delivery-jobs.store";
 import { DeliveryStatus } from "@swift-route/types";
 
 const useUpdateDeliveryStatus = () => {
-  const updateJobStatus = useDeliveryJobsStore((state) => state.advanceJobStatus);
-  const revertJobStatus = useDeliveryJobsStore((state) => state.revertJobStatus);
+  const { advanceJobStatus, revertJobStatus, loading } = useDeliveryJobsStore();
 
   const updateStatus = async (id: string, status: DeliveryStatus) => {
     // optimistically update status in store
-    updateJobStatus(id, status);
+    advanceJobStatus(id, status);
 
     try {
       // call backend to updaate delivery status
@@ -20,7 +19,7 @@ const useUpdateDeliveryStatus = () => {
     }
   }
 
-  return { updateStatus }
+  return { updateStatus, loading };
 }
 
 export default useUpdateDeliveryStatus

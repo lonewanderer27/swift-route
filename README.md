@@ -68,15 +68,45 @@ Any invalid transition (e.g. skipping a step, reversing, or updating a delivered
 
 Tests use real `NestJS TestingModule` instances with the real service — no mocks. Status-transition tests are stateful and ordered within a `describe` block, relying on Jest's sequential execution to carry in-memory state across `it()` calls.
 
-### Part 2 — Mobile (React Native / Expo) 🚧
+### Part 2 — Mobile (React Native / Expo) ✅
 
-The mobile app (`apps/swift-app`) is scaffolded with Expo SDK 54, Expo Router, and React Navigation. The courier-facing screens — **My Jobs** list and **Job Detail** — are yet to be implemented.
+The mobile app (`apps/swift-app`) is built with Expo SDK 54, Expo Router, and Tamagui. Both courier-facing screens are fully implemented and tested.
 
-Planned implementation:
-- **My Jobs screen** — list of delivery jobs with colour-coded status badges (assigned = blue, in-transit = orange, delivered = green), loading/empty/error states, pull-to-refresh, and navigation to Job Detail
-- **Job Detail screen** — full job details with a status-appropriate action button, optimistic updates via Zustand, and error rollback on API failure
-- **State management** — Zustand `deliveryJobsStore` with a `useDeliveryJobs(courierId)` custom hook
-- **Styling** — plain `StyleSheet` (no Tamagui); chosen for zero setup overhead and direct React Native API without an abstraction layer
+**My Jobs screen** (`app/index.tsx`):
+- Lists all delivery jobs for the active courier with colour-coded status badges (assigned = blue, in-transit = orange, delivered = green)
+- Skeleton loader cards shown while the initial fetch is in flight
+- Error state with a "Try again" link and an empty state with a "Refresh" link
+- Pull-to-refresh via `FlatList`'s `onRefresh`
+- Courier switcher via an avatar button in the header that opens `CourierDialogConfig`
+- Tapping a card navigates to the Job Detail screen
+
+**Job Detail screen** (`app/delivery-job/[id].tsx`):
+- Displays status badge, package type (with emoji icon), pickup/dropoff addresses, delivery notes, and timestamps
+- A sticky bottom action button advances the job through the state machine (`assigned → in-transit → delivered`) and is permanently disabled once delivered
+- Optimistic update: the store is patched immediately; a 3-second simulated network delay lets the loading/spinner state be visible before the real API call is fired
+- On API failure, the store is rolled back to the previous snapshot and an error toast is shown via `@tamagui/toast/v2`
+
+**State management** — Zustand `useDeliveryJobsStore`:
+- `jobs`, `prevJobs`, `loading`, `error` fields
+- `advanceJobStatus(id, status)` — snapshots `prevJobs` then applies the optimistic update
+- `revertJobStatus(error)` — restores `prevJobs` and sets the error message
+- `useCourierStore` — persists the selected `courierId` across navigation
+
+**Hooks**:
+- `useDeliveryJobs(courierId)` — fetches jobs on mount and on `courierId` change, exposes `refetch`
+- `useDeliveryJob(id)` — selects a single job from the store by ID
+- `useUpdateDeliveryStatus()` — orchestrates the optimistic update, simulated delay, API call, and rollback
+
+**Tests** cover four areas:
+
+1. `useDeliveryJobs` hook — successful fetch populates the store; loading transitions correctly; API failure sets the error and leaves jobs empty
+2. `useDeliveryJobsStore` — optimistic update is applied immediately; failed update is rolled back to the previous snapshot
+3. `DeliveryJobDetails` screen — renders without crashing; initial button label matches job status; spinner/disabled state appears during the API call; error toast fires and button re-enables on failure; full `assigned → in-transit → delivered` lifecycle transition
+
+Test conventions:
+- Tamagui components are shimmed with plain `View`/`React.createElement` in `jest.mock("tamagui", ...)` 
+- `UNSAFE_getByProps({ id: "..." })` locates elements because shimmed Tamagui components don't support `testID`
+- `useUpdateDeliveryStatus` has a 3-second simulated network delay; tests use `jest.useFakeTimers()` and `act(() => jest.advanceTimersByTime(3000))` to advance past it (marked with `TODO` comments to remove once the delay is dropped)
 
 ---
 

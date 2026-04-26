@@ -12,8 +12,8 @@ const useUpdateDeliveryStatus = () => {
     // optimistically update status in store
     advanceJobStatus(id, status);
 
-    // simulate slow network
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    // // simulate slow network
+    // await new Promise((resolve) => setTimeout(resolve, 3000));
 
     try {
       // call backend to updaate delivery status

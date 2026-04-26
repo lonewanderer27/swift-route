@@ -141,59 +141,57 @@ export class DeliveryJobsService {
   }
 
   patchStatus(id: string, body: PatchStatusInput) {
-    throw new BadRequestException("just to trigger error!");
+    // check first if we have the record
+    const jobIndex = this.jobs.findIndex((job) => job.id === id);
+    const job = this.jobs.find((_, index) => jobIndex === index);
 
-    // // check first if we have the record
-    // const jobIndex = this.jobs.findIndex((job) => job.id === id);
-    // const job = this.jobs.find((_, index) => jobIndex === index);
+    if (!job) {
+      // return a 404 error
+      throw deliveryJobNotFoundException(id);
+    }
 
-    // if (!job) {
-    //   // return a 404 error
-    //   throw deliveryJobNotFoundException(id);
-    // }
+    const oldStatus = job.status;
+    const newStatus = body.status;
+    const invalidStatusException = new UnprocessableEntityException(
+      `New delivery status for ID: ${id} not valid. Old: ${oldStatus}, New: ${newStatus}`,
+    );
 
-    // const oldStatus = job.status;
-    // const newStatus = body.status;
-    // const invalidStatusException = new UnprocessableEntityException(
-    //   `New delivery status for ID: ${id} not valid. Old: ${oldStatus}, New: ${newStatus}`,
-    // );
+    // enforce valid status transition
+    switch (oldStatus) {
+      case DeliveryStatus.ASSIGNED: {
+        // Assigned -> In-Transit
+        if (newStatus !== DeliveryStatus.IN_TRANSIT) {
+          throw invalidStatusException;
+        }
+        break;
+      }
+      case DeliveryStatus.IN_TRANSIT: {
+        // In-Transit -> Delivered
+        if (newStatus !== DeliveryStatus.DELIVERED) {
+          throw invalidStatusException;
+        }
+        break;
+      }
+      case DeliveryStatus.DELIVERED: {
+        // Delivered - Shall be final status
+        throw invalidStatusException;
+      }
+      default: {
+        // Do nothing, valid status change
+      }
+    }
 
-    // // enforce valid status transition
-    // switch (oldStatus) {
-    //   case DeliveryStatus.ASSIGNED: {
-    //     // Assigned -> In-Transit
-    //     if (newStatus !== DeliveryStatus.IN_TRANSIT) {
-    //       throw invalidStatusException;
-    //     }
-    //     break;
-    //   }
-    //   case DeliveryStatus.IN_TRANSIT: {
-    //     // In-Transit -> Delivered
-    //     if (newStatus !== DeliveryStatus.DELIVERED) {
-    //       throw invalidStatusException;
-    //     }
-    //     break;
-    //   }
-    //   case DeliveryStatus.DELIVERED: {
-    //     // Delivered - Shall be final status
-    //     throw invalidStatusException;
-    //   }
-    //   default: {
-    //     // Do nothing, valid status change
-    //   }
-    // }
+    // create a new updaated imaginary record
+    const updatedJob = new PatchStatusModel(
+      job,
+      body,
+    );
 
-    // // create a new updaated imaginary record
-    // const updatedJob = new PatchStatusModel(
-    //   job,
-    //   body,
-    // );
+    // replace the existing record in the current index
+    this.jobs[jobIndex] = updatedJob;
 
-    // // replace the existing record in the current index
-    // this.jobs[jobIndex] = updatedJob;
-
-    // // return the updated job
-    // return updatedJob;
+    // return the updated job
+    return updatedJob;
   }
 
   deleteOne(id: string) {

@@ -18,7 +18,7 @@ jest.mock("react-native-safe-area-context", () => ({
 }));
 
 // Mocking the DeliveryJobsService API calls during testing
-jest.mock("../../../services/delivery-jobs.service", () => ({
+jest.mock("@/services/delivery-jobs.service", () => ({
   __esModule: true,
   default: { updateStatus: jest.fn() },
 }));

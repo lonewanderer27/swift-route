@@ -5,7 +5,7 @@ import { useDeliveryJobsStore } from "@/store/delivery-jobs.store";
 import DeliveryJobsService from "@/services/delivery-jobs.service";
 import useDeliveryJobs from "@/hooks/use-delivery-jobs";
 
-jest.mock("../services/delivery-jobs.service", () => ({
+jest.mock("@/services/delivery-jobs.service", () => ({
   getCourierJobs: jest.fn(),
 }));
 

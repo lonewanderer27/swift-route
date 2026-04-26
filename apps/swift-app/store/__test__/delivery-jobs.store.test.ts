@@ -1,5 +1,5 @@
 import { DeliveryStatus } from "@swift-route/types";
-import { useDeliveryJobsStore } from "./delivery-jobs.store";
+import { useDeliveryJobsStore } from "../delivery-jobs.store";
 import { deliveryJobsStore, JOB_IDS } from "@swift-route/seed-data";
 
 // Resets the store to a known state so tests don't affect each other
@@ -31,7 +31,6 @@ it("should update job status optimistically", () => {
   expect(job).toBeDefined();
   expect(job!.status).toBe(DeliveryStatus.IN_TRANSIT);
 });
-
 
 // Rollback on failure
 it("should rollback job status on failure", () => {

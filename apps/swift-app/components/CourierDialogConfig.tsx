@@ -1,4 +1,4 @@
-import { DEFAULT_COURIER_ID } from "@/constants/rider";
+import { DEFAULT_COURIER_ID } from "@/constants/courier";
 import { useEffect, useState } from "react";
 import { Button, Dialog, Fieldset, Input, Label, XStack, YStack } from "tamagui";
 

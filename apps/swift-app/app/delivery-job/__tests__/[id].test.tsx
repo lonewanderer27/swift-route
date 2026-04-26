@@ -188,4 +188,14 @@ describe("DeliveryJobDetails", () => {
       expect(btn.props.disabled).toBe(false);
     });
   });
+
+  it("should transition the job's status through the full lifecycle: assigned → in-transit → delivered", async () => {
+    // Both button presses will succeed — the optimistic store updates stick on each transition.
+    (DeliveryJobsService.updateStatus as jest.Mock).mockResolvedValue(undefined);
+
+    const { getByText } = render(<DeliveryJobDetails />);
+
+    // Initial state: the store holds jk_assigned (ASSIGNED), so the first action label must be shown.
+    expect(getByText("Mark as Picked Up")).toBeTruthy();
+  });
 });

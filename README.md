@@ -6,7 +6,7 @@ SwiftRoute is a fictional last-mile logistics platform built as a take-home tech
 
 ## Monorepo Structure
 
-This is a **pnpm monorepo** with two apps and one shared package:
+This is a **pnpm monorepo** with two apps and two shared packages:
 
 ```
 swift-route/
@@ -19,6 +19,30 @@ swift-route/
 ```
 
 The workspace is defined in `pnpm-workspace.yaml` with hoisted node linking.
+
+### Shared Types (`packages/types`)
+
+Package name: `@swift-route/types`. No build step — imported directly from source via the monorepo workspace.
+
+```ts
+DeliveryStatus  // "assigned" | "in-transit" | "delivered"
+PackageType     // "document" | "perishable" | "fragile" | "appliance" | "furniture"
+
+type Courier      = { id: string; name: string }
+type DeliveryNote = { id: string; createdAt: Date; deliveryId: string; note: string }
+type DeliveryJob  = { id, createdAt, updatedAt, pickupAddress, dropoffAddress,
+                      packageType, status, notes, courier }
+```
+
+`DeliveryStatus` and `PackageType` are defined as `const` objects rather than TypeScript `enum` to work around a known incompatibility between the NestJS boilerplate and TypeScript 5.7+.
+
+### Shared Seed Data (`packages/seed-data`)
+
+Package name: `@swift-route/seed-data`. Built with TypeScript to `dist/` and consumed as a workspace package.
+
+Exports `COURIER_IDS`, `JOB_IDS`, `courierStore`, `deliveryNotesStore`, and `deliveryJobsStore`. Both the backend in-memory store and mobile tests import from here to guarantee consistent fixtures across the entire monorepo.
+
+`JOB_IDS.ian` is a non-existent ID reserved for 404 test cases.
 
 ---
 
@@ -105,7 +129,7 @@ The mobile app (`apps/swift-app`) is built with Expo SDK 54, Expo Router, and Ta
 3. `DeliveryJobDetails` screen — renders without crashing; initial button label matches job status; spinner/disabled state appears during the API call; error toast fires and button re-enables on failure; full `assigned → in-transit → delivered` lifecycle transition
 
 Test conventions:
-- Tamagui components are shimmed with plain `View`/`React.createElement` in `jest.mock("tamagui", ...)` 
+- Tamagui components are shimmed with plain `View`/`React.createElement` in `jest.mock("tamagui", ...)`
 - `UNSAFE_getByProps({ id: "..." })` locates elements because shimmed Tamagui components don't support `testID`
 - `useUpdateDeliveryStatus` has a 3-second simulated network delay; tests use `jest.useFakeTimers()` and `act(() => jest.advanceTimersByTime(3000))` to advance past it (marked with `TODO` comments to remove once the delay is dropped)
 
@@ -148,7 +172,9 @@ See the attached UML sequence diagram for the full flow.
 
 Tamagui was chosen for its layout primitives — `YStack`, `XStack`, `Button`, `Spinner`, `Separator`, and `Avatar` — which made it straightforward to compose screens and components quickly without writing boilerplate layout code. Where the primitives weren't enough, plain React Native `StyleSheet` was used to customise further (for example, the status badge pill).
 
-### What I'd change or prioritise with more time
+---
+
+## What I'd change or prioritise with more time
 
 #### React Query for data fetching + built-in network retry
 Replace `useDeliveryJobs` and `useDeliveryJob` with React Query hooks that wrap the existing service class — the service class stays, since it cleanly organises network requests per feature.
@@ -165,12 +191,12 @@ Advance status currently renders a disabled button that a courier can tap and ge
 The API base URL is a runtime conditional in `api-client.ts` (`10.0.2.2` vs `localhost`). There's no `.env` / `app.config.js` setup for dev / staging / prod targets — the first thing a CI/CD pipeline would need is environment-based builds.
 
 #### Performance on large job lists
-`DeliveryJobCard` is not memoized, `handleJob` is recreated every render, and the store subscription in `index.tsx` pulls the full `jobs` array so any store change (including `loading` toggling) re-renders the entire list. 
+`DeliveryJobCard` is not memoized, `handleJob` is recreated every render, and the store subscription in `index.tsx` pulls the full `jobs` array so any store change (including `loading` toggling) re-renders the entire list.
 
-Targeted fixes: 
-- `React.memo` on the card, 
+Targeted fixes:
+- `React.memo` on the card
 - `useCallback` on the handler
-- Zustand `useShallow` selector so the list only re-renders when `jobs` actually changes, and `getItemLayout` if card heights are fixed. 
+- Zustand `useShallow` selector so the list only re-renders when `jobs` actually changes, and `getItemLayout` if card heights are fixed
 
 Beyond that, swapping `FlatList` for **FlashList** is also another option (Shopify's recycler-based replacement) would give a significant frame-rate improvement on long lists without requiring changes to the card components themselves.
 
@@ -182,31 +208,23 @@ Exists only to make the spinner visible during development. Real network latency
 
 ---
 
-## Shared Types (`packages/types`)
+## AI — Where it helped and where I made deliberate choices
 
-Package name: `@swift-route/types`. No build step — imported directly from source via the monorepo workspace.
+### Monorepo and shared packages
 
-```ts
-DeliveryStatus  // "assigned" | "in-transit" | "delivered"
-PackageType     // "document" | "perishable" | "fragile" | "appliance" | "furniture"
+Going with a monorepo was a choice I made from the start, with the goal of being able to share types and test data between the backend and mobile app in a structured way.
 
-type Courier      = { id: string; name: string }
-type DeliveryNote = { id: string; createdAt: Date; deliveryId: string; note: string }
-type DeliveryJob  = { id, createdAt, updatedAt, pickupAddress, dropoffAddress,
-                      packageType, status, notes, courier }
-```
+I started by defining the types on the backend side, then worked with Claude to extract them into a proper workspace package under `packages/` (`@swift-route/types`), wire up the imports in both apps, and resolve the TypeScript compilation errors that came up along the way. The structure was my decision; Claude helped me execute it without it becoming a rabbit hole.
 
-`DeliveryStatus` and `PackageType` are defined as `const` objects rather than TypeScript `enum` to work around a known incompatibility between the NestJS boilerplate and TypeScript 5.7+.
+Having seen how that pattern worked, I independently applied it a second time for the seed data — migrating the virtual in-memory stores from the backend into `@swift-route/seed-data`, making the same fixture data available to mobile tests without duplication. The structure and approach were entirely my own at that point; Claude helped me understand the pattern initially.
 
----
+### Jest + React Native Testing Library issues with Tamagui & Expo
 
-## Shared Seed Data (`packages/seed-data`)
+The hard part was tooling friction: Tamagui components don't work out of the box in a Jest environment, and Expo Router adds its own layer of mocking complexity.
 
-Package name: `@swift-route/seed-data`. Built with TypeScript to `dist/` and consumed as a workspace package.
+Claude had a significant hand in resolving those errors — working out the right Tamagui shim shape (replacing components with plain `View`/`React.createElement` wrappers), and sorting out the `UNSAFE_getByProps` pattern as a workaround for the missing `testID` support on shimmed components.
 
-Exports `COURIER_IDS`, `JOB_IDS`, `courierStore`, `deliveryNotesStore`, and `deliveryJobsStore`. Both the backend in-memory store and mobile tests import from here to guarantee consistent fixtures across the entire monorepo.
-
-`JOB_IDS.ian` is a non-existent ID reserved for 404 test cases.
+The testing strategies were mine but debugging was very much a collaboration.
 
 ---
 

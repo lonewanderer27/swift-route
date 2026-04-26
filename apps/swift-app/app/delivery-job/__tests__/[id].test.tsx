@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { useLocalSearchParams } from "expo-router";
 import { COURIER_IDS, JOB_IDS, deliveryJobsStore } from "@swift-route/seed-data";
 import { useDeliveryJobsStore } from "@/store/delivery-jobs.store";
@@ -101,5 +101,36 @@ describe("DeliveryJobDetails", () => {
     // "Mark as Picked Up" is the ACTION_LABEL for DeliveryStatus.ASSIGNED.
     // Finding it confirms the component reads the job's status and maps it to the correct label.
     expect(getByText("Mark as Picked Up")).toBeTruthy();
+  });
+
+  it("should disable the button and show a spinner while the status update is in flight", async () => {
+    // Return a promise that never resolves so the loading state stays true for the duration of the test.
+    // This lets us assert the in-flight UI without the update ever completing.
+    (DeliveryJobsService.updateStatus as jest.Mock).mockReturnValue(new Promise(() => {}));
+
+    const { UNSAFE_getByProps } = render(<DeliveryJobDetails />);
+
+    // Locate the action button by its id prop (preserved on the shimmed View).
+    const btn = UNSAFE_getByProps({ id: "update-status-btn" });
+
+    // Simulate the courier tapping the button to trigger the status update.
+    fireEvent.press(btn);
+
+    /*
+      We deliberately added a 3s timer to simulate network latency
+      and show the loading state in the UI. 
+      
+      So to test the loading state, we need to advance timers by 3 seconds
+      to trigger the state change that happens when the API call is made.
+    */
+    act(() => { jest.advanceTimersByTime(3000); });
+
+    await waitFor(() => {
+      // The Spinner mounts inside the button while loading is true.
+      expect(UNSAFE_getByProps({ id: "update-status-spinner" })).toBeTruthy();
+
+      // The button must be disabled so the courier cannot fire duplicate updates.
+      expect(btn.props.disabled).toBe(true);
+    });
   });
 });

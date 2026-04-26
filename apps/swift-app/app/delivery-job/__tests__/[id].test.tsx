@@ -193,9 +193,29 @@ describe("DeliveryJobDetails", () => {
     // Both button presses will succeed — the optimistic store updates stick on each transition.
     (DeliveryJobsService.updateStatus as jest.Mock).mockResolvedValue(undefined);
 
-    const { getByText } = render(<DeliveryJobDetails />);
+    const { getByText, UNSAFE_getByProps } = render(<DeliveryJobDetails />);
 
     // Initial state: the store holds jk_assigned (ASSIGNED), so the first action label must be shown.
     expect(getByText("Mark as Picked Up")).toBeTruthy();
+
+    const btn = UNSAFE_getByProps({ id: "update-status-btn" });
+
+    // Transition 1: ASSIGNED → IN_TRANSIT
+    fireEvent.press(btn);
+
+    /* 
+      Advance past the 3 s simulated network delay so the API call is made and resolves.
+      TODO: Remove this once the simulated delay is removed from the hook!
+    */
+    act(() => { jest.advanceTimersByTime(3000); });
+
+    await waitFor(() => {
+      // The optimistic update changed the store to IN_TRANSIT, so the next action label must appear.
+      expect(getByText("Mark as Delivered")).toBeTruthy();
+
+      // loading is false after the API resolves and the job is not yet DELIVERED,
+      // so the button must be interactive again for the next press.
+      expect(btn.props.disabled).toBe(false);
+    });
   });
 });

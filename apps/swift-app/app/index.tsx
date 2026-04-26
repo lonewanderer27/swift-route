@@ -7,6 +7,7 @@ import CourierDialogConfig from "@/components/CourierDialogConfig";
 import useDeliveryJobs from "@/hooks/use-delivery-jobs";
 import { DEFAULT_COURIER_ID } from "@/constants/courier";
 import DeliveryJobCard from "@/components/DeliveryJobCard";
+import DeliveryJobCardLoader from "@/components/loader/DeliveryJobCardLoader";
 
 export default function Index() {
   const { courierId, setCourierId } = useCourierStore();
@@ -41,21 +42,29 @@ export default function Index() {
         courierId={courierId ?? DEFAULT_COURIER_ID}
         onCourierChange={setCourierId}
       />
-      <View style={{ flex: 1 }}
-      >
-        <FlatList
-          data={jobs}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <DeliveryJobCard {...item} onPress={() => handleJob(item.id)} />}
-          contentContainerStyle={{ paddingVertical: 8 }}
-          refreshing={loading}
-          onRefresh={refetch}
-          ListEmptyComponent={() => (
-            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", marginTop: 50 }}>
-              <Text style={{ fontSize: 16, color: "#888" }}>{error ?? "No delivery jobs found."}</Text>
-            </View>
-          )}
-        />
+      <View style={{ flex: 1 }}>
+        {loading && jobs.length === 0 && (
+          <View style={{ paddingVertical: 8 }}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <DeliveryJobCardLoader key={i} />
+            ))}
+          </View>
+        )}
+        {!(loading && jobs.length === 0) && (
+          <FlatList
+            data={jobs}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <DeliveryJobCard {...item} onPress={() => handleJob(item.id)} />}
+            contentContainerStyle={{ paddingVertical: 8 }}
+            refreshing={loading}
+            onRefresh={refetch}
+            ListEmptyComponent={() => (
+              <View style={{ flex: 1, justifyContent: "center", alignItems: "center", marginTop: 50 }}>
+                <Text style={{ fontSize: 16, color: "#888" }}>{error ?? "No delivery jobs found."}</Text>
+              </View>
+            )}
+          />
+        )}
       </View>
     </>
   );

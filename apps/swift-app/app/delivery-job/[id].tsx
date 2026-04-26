@@ -38,11 +38,18 @@ export default function DeliveryJobDetails() {
   const { bottom } = useSafeAreaInsets()
   const { id } = useLocalSearchParams<{ id: string }>();
   const job = useDeliveryJob(id);
-  const { updateStatus, loading, error } = useUpdateDeliveryStatus();
+  const { updateStatus, loading, error, setError } = useUpdateDeliveryStatus();
 
   useEffect(() => {
     if (error) {
+      // toast the error
       toast.error('Error', { description: error, id: "update-status-error" });
+
+      // reset the error state after 3 seconds of showing the toast
+      // to avoid being shown again if the user comes back to the details screen
+      setTimeout(() => {
+        setError(null);
+      }, 3000);
     }
   }, [error])
 

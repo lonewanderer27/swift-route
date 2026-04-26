@@ -28,7 +28,7 @@ const useUpdateDeliveryStatus = () => {
     }
   }
 
-  return { updateStatus, loading, error };
+  return { updateStatus, loading, error, setError };
 }
 
 export default useUpdateDeliveryStatus

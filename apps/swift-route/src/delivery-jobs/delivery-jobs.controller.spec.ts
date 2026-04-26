@@ -6,7 +6,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from "@nestjs/common";
-import { JOB_IDS } from "../stores/delivery-jobs.store";
+import { JOB_IDS } from "@swift-route/seed-data";
 import { DeliveryStatus } from "@swift-route/types";
 
 describe("DeliveryJobsController", () => {

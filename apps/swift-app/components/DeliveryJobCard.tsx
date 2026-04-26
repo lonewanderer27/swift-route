@@ -1,19 +1,6 @@
+import { STATUS_CONFIG, PACKAGE_ICON } from "@/constants/delivery-job";
 import { DeliveryJob, DeliveryStatus } from "@swift-route/types";
 import { Card, XStack, YStack, Text, Separator } from "tamagui";
-
-const STATUS_CONFIG: Record<DeliveryStatus, { label: string; bg: string; color: string }> = {
-  [DeliveryStatus.ASSIGNED]: { label: "Assigned", bg: "#DBEAFE", color: "#1D4ED8" },
-  [DeliveryStatus.IN_TRANSIT]: { label: "In Transit", bg: "#FFEDD5", color: "#C2410C" },
-  [DeliveryStatus.DELIVERED]: { label: "Delivered", bg: "#DCFCE7", color: "#15803D" },
-};
-
-const PACKAGE_ICON: Record<string, string> = {
-  document: "📄",
-  perishable: "🧊",
-  fragile: "⚠️",
-  appliance: "🔌",
-  furniture: "🪑",
-};
 
 interface DeliveryJobCardProps extends DeliveryJob {
   onPress?: () => void;

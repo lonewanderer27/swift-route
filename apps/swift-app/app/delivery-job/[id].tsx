@@ -1,7 +1,7 @@
 import { Stack, useLocalSearchParams } from "expo-router";
 import { ScrollView, View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Button, Separator, XStack, YStack } from "tamagui";
+import { Button, Separator, Spinner, XStack, YStack } from "tamagui";
 import useDeliveryJob from "@/hooks/use-delivery-job";
 import { STATUS_CONFIG, PACKAGE_ICON } from "@/constants/delivery-job";
 import { DeliveryStatus } from "@swift-route/types";
@@ -127,6 +127,7 @@ export default function DeliveryJobDetails() {
 
         <View style={{ padding: 16, paddingBottom: 16 + insets.bottom, borderTopWidth: 1, borderTopColor: "#E5E7EB" }}>
           <Button
+            id="update-status-btn"
             size="$5"
             disabled={loading || isDelivered}
             onPress={handleNext}
@@ -140,6 +141,7 @@ export default function DeliveryJobDetails() {
                 style={{ marginRight: 8 }}
               />}
             <Text
+              id="update-status-label"
               style={{
                 fontWeight: "700",
                 color: actionStyle ?

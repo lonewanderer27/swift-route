@@ -124,17 +124,6 @@ describe("DeliveryJobDetails", () => {
     // Simulate the courier tapping the button to trigger the status update.
     fireEvent.press(btn);
 
-    /*
-      We deliberately added a 3s timer to simulate network latency
-      and show the loading state in the UI. 
-      
-      So to test the loading state, we need to advance timers by 3 seconds
-      to trigger the state change that happens when the API call is made.
-
-      TODO: Remove this once the simulated delay is removed from the hook!
-    */
-    act(() => { jest.advanceTimersByTime(3000); });
-
     await waitFor(() => {
       // The Spinner mounts inside the button while loading is true.
       expect(UNSAFE_getByProps({ id: "update-status-spinner" })).toBeTruthy();
@@ -170,14 +159,6 @@ describe("DeliveryJobDetails", () => {
     // Simulate advancement of job status by tapping the button.
     fireEvent.press(btn);
 
-    /*  
-      Advance past the hook's 3 s simulated network delay so the rejected
-      API call is awaited and the catch block runs (setError + revertJobStatus).
-
-      TODO: Remove this once the simulated delay is removed from the hook!
-    */
-    act(() => { jest.advanceTimersByTime(3000); });
-
     await waitFor(() => {
       // The component's useEffect watches the error field and calls toast.error when it is set.
       // Asserting the spy confirms the error message is propagated all the way to the UI layer.
@@ -207,12 +188,6 @@ describe("DeliveryJobDetails", () => {
     // Transition 1: ASSIGNED → IN_TRANSIT
     fireEvent.press(btn);
 
-    /* 
-      Advance past the 3 s simulated network delay so the API call is made and resolves.
-      TODO: Remove this once the simulated delay is removed from the hook!
-    */
-    act(() => { jest.advanceTimersByTime(3000); });
-
     await waitFor(() => {
       // The optimistic update changed the store to IN_TRANSIT, so the next action label must appear.
       expect(label.props.children).toBe("Mark as Delivered");
@@ -227,12 +202,6 @@ describe("DeliveryJobDetails", () => {
     // Simulate the courier tapping "Mark as Delivered".
     // advanceJobStatus fires immediately, setting the store to DELIVERED.
     fireEvent.press(btn);
-
-    /* 
-      Advance past the 3 s delay again for the second API call.
-      TODO: Remove this once the simulated delay is removed from the hook!
-    */
-    act(() => { jest.advanceTimersByTime(3000); });
 
     await waitFor(() => {
       // The item has now been delivered, this should be the last status update.
